@@ -1,5 +1,4 @@
 const { Contact } = require("../models/contact");
-
 const { HttpError, ctrlWrapper } = require("../helpers");
 
 const listContacts = async (req, res) => {
@@ -24,12 +23,12 @@ const getContactById = async (req, res) => {
 };
 
 const addContact = async (req, res) => {
-  const result = await Contact.create(req.body);
-  if (!result) {
-    throw HttpError(404, "Not found");
+  const newContact = await Contact.create(req.body);
+  if (!newContact) {
+    throw HttpError(422, "Unprocessable Content");
   }
 
-  res.status(201).json(result);
+  res.status(201).json(newContact);
 };
 
 const removeContact = async (req, res) => {
