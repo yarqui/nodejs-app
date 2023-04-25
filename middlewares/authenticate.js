@@ -9,8 +9,7 @@ const authenticate = async (req, res, next) => {
   const { authorization = "" } = req.headers;
   const [bearer, token] = authorization.split(" ");
   if (bearer !== "Bearer") {
-    // throw or next?
-    next(HttpError(401, "Unauthorized")); // next stops function execution
+    next(HttpError(401)); // next() stops function execution
   }
 
   try {
@@ -18,15 +17,12 @@ const authenticate = async (req, res, next) => {
     // If the token is valid and not expired, the user could still have been deleted from the DB. That's why we check if the user with this id exists in DB.
     const user = await User.findById(id);
     if (!user) {
-      next(HttpError(401, "Unauthorized"));
+      next(HttpError(401));
     }
     next();
   } catch {
-    next(HttpError(401, "Unauthorized"));
+    next(HttpError(401));
   }
-
-  console.log("authorization:", authorization);
-  next();
 };
 
 module.exports = authenticate;
