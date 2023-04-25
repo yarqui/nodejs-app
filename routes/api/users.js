@@ -7,3 +7,5 @@ const router = express.Router();
 module.exports = router;
 
 router.post("/signup", validateBody(schemas.signupSchema), ctrl.signup);
+
+router.post("/login", validateBody(schemas.loginSchema), ctrl.login);
