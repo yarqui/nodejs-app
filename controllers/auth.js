@@ -47,7 +47,6 @@ const login = async (req, res) => {
     id: user._id,
   };
   // jwt.sign() has 1st arg payload, 2nd - secret_key, 3rd - options object, like token expiration time
-  console.log("id:", id);
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "23h" });
   // checks token expiration, and if this token was encrypted using this SECRET_KEY. Throws and error, if token is expired. that's why we should use try catch. If token is valid, it returns our payload - in our case "id" of the user.
   try {
