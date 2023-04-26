@@ -4,6 +4,7 @@ const errorMessageList = {
   403: "Forbidden",
   404: "Not found",
   409: "Conflict",
+  422: "Unprocessable Content",
 };
 
 // errorMessageList allows us to omit mentioning the error message if it's the default message.

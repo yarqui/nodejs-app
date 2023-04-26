@@ -16,7 +16,9 @@ const authenticate = async (req, res, next) => {
     const { id } = jwt.verify(token, SECRET_KEY);
     // If the token is valid and not expired, the user could still have been deleted from the DB. That's why we check if the user with this id exists in DB.
     const user = await User.findById(id);
-    if (!user) {
+
+    // throws 401 Unauthorized if there's no user in DB or there's no token in user's document in DB or sent token is not the same token, saved in DB
+    if (!user || !user.token || user.token !== token) {
       next(HttpError(401));
     }
     // we add a user object to request to be able to identify him during http requests later

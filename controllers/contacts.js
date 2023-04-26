@@ -5,7 +5,6 @@ const listContacts = async (req, res) => {
   const { _id: owner } = req.user;
   const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
-  console.log(req.query);
 
   // we can pass the 2nd argument to find() to include fields ("password" or {password:1}) or exclude fields ("-password" or {password: 0})
   const result = await Contact.find({ owner }, "-createdAt -updatedAt", {
@@ -15,7 +14,7 @@ const listContacts = async (req, res) => {
   // populate() tells mongoose to get this "owner" field, find the collection it belongs to (using "ref" in Contact model), find the object with this ID and paste the whole object instead of this "owner" field
 
   if (!result) {
-    throw HttpError(404, "Not found");
+    throw HttpError(404);
   }
 
   res.status(200).json(result);
@@ -26,7 +25,7 @@ const getContactById = async (req, res) => {
   const result = await Contact.findById(contactId);
 
   if (!result) {
-    throw HttpError(404, "Not found");
+    throw HttpError(404);
   }
 
   res.status(200).json(result);
@@ -39,7 +38,7 @@ const addContact = async (req, res) => {
   //TODO: check if this contact already exists in the contacts of this user
 
   if (!newContact) {
-    throw HttpError(422, "Unprocessable Content");
+    throw HttpError(422);
   }
 
   res.status(201).json(newContact);
@@ -50,7 +49,7 @@ const removeContact = async (req, res) => {
   const result = await Contact.findByIdAndRemove(contactId);
 
   if (!result) {
-    throw HttpError(404, "Not found");
+    throw HttpError(404);
   }
   // if we set res.status(204), the body of the message won't be sent in res.json()
   res.json("contact deleted");
@@ -60,14 +59,14 @@ const updateContact = async (req, res) => {
   const { contactId } = req.params;
 
   if (!req.body) {
-    throw HttpError(400, "Bad request");
+    throw HttpError(400);
   }
   const result = await Contact.findByIdAndUpdate(contactId, req.body, {
     new: true,
   });
 
   if (!result) {
-    throw HttpError(404, "Not found");
+    throw HttpError(404);
   }
 
   res.status(200).json(result);
@@ -85,7 +84,7 @@ const updateStatusContact = async (req, res) => {
   });
 
   if (!result) {
-    throw HttpError(404, "Not found");
+    throw HttpError(404);
   }
 
   res.status(200).json(result);
