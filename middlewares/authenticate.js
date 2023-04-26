@@ -19,6 +19,8 @@ const authenticate = async (req, res, next) => {
     if (!user) {
       next(HttpError(401));
     }
+    // we add a user object to request to be able to identify him during http requests later
+    req.user = user;
     next();
   } catch {
     next(HttpError(401));

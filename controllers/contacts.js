@@ -2,7 +2,17 @@ const { Contact } = require("../models/contact");
 const { HttpError, ctrlWrapper } = require("../helpers");
 
 const listContacts = async (req, res) => {
-  const result = await Contact.find();
+  const { _id: owner } = req.user;
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+  console.log(req.query);
+
+  // we can pass the 2nd argument to find() to include fields ("password" or {password:1}) or exclude fields ("-password" or {password: 0})
+  const result = await Contact.find({ owner }, "-createdAt -updatedAt", {
+    limit,
+    skip,
+  }).populate("owner", "name email");
+  // populate() tells mongoose to get this "owner" field, find the collection it belongs to (using "ref" in Contact model), find the object with this ID and paste the whole object instead of this "owner" field
 
   if (!result) {
     throw HttpError(404, "Not found");
@@ -23,7 +33,11 @@ const getContactById = async (req, res) => {
 };
 
 const addContact = async (req, res) => {
-  const newContact = await Contact.create(req.body);
+  const { _id: owner } = req.user; // we rename an "_id" to "owner" to match the User Schema
+  const newContact = await Contact.create({ ...req.body, owner });
+
+  //TODO: check if this contact already exists in the contacts of this user
+
   if (!newContact) {
     throw HttpError(422, "Unprocessable Content");
   }
