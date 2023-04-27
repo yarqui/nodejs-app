@@ -81,9 +81,28 @@ const logout = async (req, res) => {
   res.status(204).json();
 };
 
+const updateUserSubscription = async (req, res) => {
+  const { _id } = req.user;
+
+  if (!req.body) {
+    throw HttpError(400, "Missing field: subscription");
+  }
+
+  const result = await User.findByIdAndUpdate(_id, req.body, {
+    new: true,
+  });
+
+  if (!result) {
+    throw HttpError(404);
+  }
+
+  res.status(200).json(result);
+};
+
 module.exports = {
   signup: ctrlWrapper(signup),
   login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
+  updateUserSubscription: ctrlWrapper(updateUserSubscription),
 };
