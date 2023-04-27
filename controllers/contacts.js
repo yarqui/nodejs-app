@@ -39,7 +39,7 @@ const addContact = async (req, res) => {
   const { _id: owner } = req.user; // we rename an "_id" to "owner" to match the User Schema
   const newContact = await Contact.create({ ...req.body, owner });
 
-  //TODO: check if this contact already exists in the contacts of this user
+  // TODO: check if this contact already exists in the contacts of this user
 
   if (!newContact) {
     throw HttpError(422);
