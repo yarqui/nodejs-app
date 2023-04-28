@@ -26,7 +26,14 @@ const listContacts = async (req, res) => {
 
 const getContactById = async (req, res) => {
   const { contactId } = req.params;
+  const { _id: owner } = req.user;
+
   const result = await Contact.findById(contactId);
+
+  // compares owner of token and owner of contact
+  if (result.owner.toString() !== owner.toString()) {
+    throw HttpError(401);
+  }
 
   if (!result) {
     throw HttpError(404);
@@ -50,6 +57,14 @@ const addContact = async (req, res) => {
 
 const removeContact = async (req, res) => {
   const { contactId } = req.params;
+  const { _id: owner } = req.user;
+
+  // compares owner of token and owner of contact
+  const contactFromDB = await Contact.findById(contactId);
+  if (contactFromDB.owner.toString() !== owner.toString()) {
+    throw HttpError(401);
+  }
+
   const result = await Contact.findByIdAndRemove(contactId);
 
   if (!result) {
@@ -61,12 +76,21 @@ const removeContact = async (req, res) => {
 
 const updateContact = async (req, res) => {
   const { contactId } = req.params;
+  const { _id: owner } = req.user;
 
   if (!req.body) {
     throw HttpError(400);
   }
+
+  // compares owner of token and owner of contact
+  const contactFromDB = await Contact.findById(contactId);
+  if (contactFromDB.owner.toString() !== owner.toString()) {
+    throw HttpError(401);
+  }
+
   const result = await Contact.findByIdAndUpdate(contactId, req.body, {
     new: true,
+    select: "-createdAt",
   });
 
   if (!result) {
@@ -78,13 +102,21 @@ const updateContact = async (req, res) => {
 
 const updateStatusContact = async (req, res) => {
   const { contactId } = req.params;
+  const { _id: owner } = req.user;
 
   if (!req.body) {
     throw HttpError(400, "Missing field: favorite");
   }
 
+  // compares owner of token and owner of contact
+  const contactFromDB = await Contact.findById(contactId);
+  if (contactFromDB.owner.toString() !== owner.toString()) {
+    throw HttpError(401);
+  }
+
   const result = await Contact.findByIdAndUpdate(contactId, req.body, {
     new: true,
+    select: "-createdAt -updatedAt",
   });
 
   if (!result) {
