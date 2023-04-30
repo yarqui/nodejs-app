@@ -3,8 +3,9 @@ const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const path = require("path");
 const fs = require("fs/promises");
+const jimp = require("jimp");
 const { User } = require("../models/user");
-const { HttpError, ctrlWrapper } = require("../helpers");
+const { HttpError, ctrlWrapper, editImage } = require("../helpers");
 
 const { SECRET_KEY } = process.env;
 
@@ -114,30 +115,23 @@ const updateUserSubscription = async (req, res) => {
 
 const updateUserAvatar = async (req, res) => {
   const { _id } = req.user;
-
   if (!req.file) {
     throw HttpError(400, "Missing the file to upload");
   }
-
-  // path has a URL ❗WITH file extension, where the uploaded file came from (device)
-  // original name is the name of the uploaded file ❗WITH extension
+  // path has a URL WITH file extension, where the uploaded file came from (device)
+  // ❗❗❗"originalname" is the name of the uploaded file WITH extension
   // in req.file we have the uploaded file. It doesn't go to req.body
-  console.log("req.file: ", req.file);
-  console.log("req.file.path: ", req.file.path);
-  console.log("typeof req.file.path: ", typeof req.file.path);
-  const { path: tempUpload, originalName } = req.file;
+  const { path: tempUpload, originalname } = req.file;
+  const avatarName = `${_id}-${originalname}`;
+
+  await editImage(tempUpload);
 
   // destination path + name
-  const destinationUpload = path.join(avatarsDir, originalName);
-
-  // fs.rename can also move files, not just rename it. fs.rename(oldPath, newPath)
-  console.log("tempUpload:", tempUpload);
+  const destinationUpload = path.join(avatarsDir, avatarName);
+  const avatarURL = path.join("avatars", avatarName);
   await fs.rename(tempUpload, destinationUpload);
 
-  const avatarURL = path.join("avatars", originalName);
-  console.log("avatarURL:", avatarURL);
-
-  const user = await User.findByIdAndUpdate(
+  const result = await User.findByIdAndUpdate(
     _id,
     { avatarURL },
     {
@@ -146,7 +140,9 @@ const updateUserAvatar = async (req, res) => {
     }
   );
 
-  if (!user) {
+  console.log("result:", result);
+
+  if (!result) {
     throw HttpError(404);
   }
 
