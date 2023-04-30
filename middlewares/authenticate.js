@@ -8,6 +8,7 @@ const authenticate = async (req, res, next) => {
   // We use authorization = "" in case if no authorization header is sent, it'll be undefined, and we can't split "undefined"
   const { authorization = "" } = req.headers;
   const [bearer, token] = authorization.split(" ");
+
   if (bearer !== "Bearer") {
     next(HttpError(401)); // next() stops function execution
   }
