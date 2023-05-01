@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const path = require("path");
 const fs = require("fs/promises");
-const jimp = require("jimp");
 const { User } = require("../models/user");
 const { HttpError, ctrlWrapper, editImage } = require("../helpers");
 
@@ -69,7 +68,7 @@ const login = async (req, res) => {
 
   // checks token expiration, and whether this token was encrypted using this SECRET_KEY. Throws and error, if token is expired. that's why we should use try catch. If token is valid, it returns our payload - in our case "id" of the user.
   try {
-    const { id } = jwt.verify(token, SECRET_KEY);
+    const { id } = jwt.verify(token, SECRET_KEY); // eslint-disable-line
   } catch (error) {
     console.log(error.message);
   }

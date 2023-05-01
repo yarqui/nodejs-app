@@ -14,6 +14,8 @@ const authenticate = async (req, res, next) => {
   }
 
   try {
+    // checks token expiration, and whether this token was encrypted using this SECRET_KEY. Throws and error, if token is expired. that's why we should use try catch. If token is valid, it returns our payload - in our case "id" of the user.
+
     const { id } = jwt.verify(token, SECRET_KEY);
     // If the token is valid and not expired, the user could still have been deleted from the DB. That's why we check if the user with this id exists in DB.
     const user = await User.findById(id);
