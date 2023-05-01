@@ -44,10 +44,15 @@ const getContactById = async (req, res) => {
 
 const addContact = async (req, res) => {
   const { _id: owner } = req.user; // we rename an "_id" to "owner" to match the User Schema
+  const { email } = req.body;
+
+  // we use findOne, because if we have no result matching query, it will return null
+  const isItDuplicate = await Contact.findOne({ email, owner });
+  if (isItDuplicate) {
+    throw HttpError(409);
+  }
+
   const newContact = await Contact.create({ ...req.body, owner });
-
-  // TODO: check if this contact already exists in the contacts of this user
-
   if (!newContact) {
     throw HttpError(422);
   }
