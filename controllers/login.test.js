@@ -1,8 +1,4 @@
-// - Response must have status code 200
-// - The token must be returned in the response
-// - The response should return a user object with 2 fields email and subscription, having the data type String
-
-// require("dotenv").config();
+/* eslint-disable no-undef */
 const mongoose = require("mongoose");
 const request = require("supertest");
 const bcrypt = require("bcrypt");
@@ -13,7 +9,6 @@ const { User } = require("../models/user");
 
 describe("Login", () => {
   let user;
-  let token;
   const avatarURL = gravatar.url("testuser@email.com");
 
   beforeAll(async () => {
@@ -32,7 +27,7 @@ describe("Login", () => {
   });
 
   test("Response must have status code 200", async () => {
-    const response = await request(app)
+    await request(app)
       .post("/api/users/login")
       .send({ email: user.email, password: "password" })
       .expect(200);
