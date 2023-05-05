@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: "../.env" });
 const sgMail = require("@sendgrid/mail");
 const nodemailer = require("nodemailer");
 
@@ -16,7 +16,7 @@ const sendSgEmail = async (data) => {
   // data is 'to', 'subject', 'html', 'text' etc.
   const message = { ...data, from: SG_EMAIL_SENDER };
   await sgMail.send(message);
-
+  console.log("email sent via sendgrid");
   // we return true, if the error occurs, controller will handle it
   return true;
 };
@@ -35,11 +35,13 @@ const sendNodemailerEmail = (data) => {
   const transporter = nodemailer.createTransport(config);
   const message = { ...data, from: ZL_EMAIL_SENDER };
   transporter.sendMail(message);
+  console.log("email sent via nodemailer");
 
   return true;
 };
 
-sendSgEmail(testDataToSend);
+// sendSgEmail(testDataToSend);
+
 // sendNodemailerEmail(testDataToSend);
 
 const sendEmail = { sendSgEmail, sendNodemailerEmail };
