@@ -3,10 +3,11 @@ const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const path = require("path");
 const fs = require("fs/promises");
+const { nanoid } = require("nanoid");
 const { User } = require("../models/user");
-const { HttpError, ctrlWrapper, editImage } = require("../helpers");
+const { HttpError, ctrlWrapper, editImage, sendEmail } = require("../helpers");
 
-const { SECRET_KEY } = process.env;
+const { SECRET_KEY, BASE_URL } = process.env;
 
 const avatarsDir = path.join(__dirname, "../", "public", "avatars");
 
@@ -26,15 +27,31 @@ const signup = async (req, res) => {
   // returns a string -> link to generated avatar. 1st argument is email we associate avatar with, 2nd is options object to customize the Gravatar URL
   const avatarURL = gravatar.url(email);
 
+  // create verificationCode for verifying an email after sign up
+  const verificationToken = await nanoid();
+
   // If email is unique, we make a request to create a new user;
   const newUser = await User.create({
     ...req.body,
     password: hashedPassword,
     avatarURL,
+    verificationToken,
   });
   if (!newUser) {
     throw HttpError(422, "Unprocessable Content");
   }
+
+  const verifyEmail = {
+    to: email,
+    subject: "Please verify your email",
+    html: `<p>Click <a target="_blank" href="${BASE_URL}/api/users/verify/${verificationToken}">here</a> to verify your email: <strong>${email}</strong></p>`,
+  };
+
+  // sendgrid version
+  await sendEmail.sendSgEmail(verifyEmail);
+
+  // nodemailer version
+  // await sendEmail.sendNodemailerEmail(verifyEmail);
 
   res.status(201).json({
     user: {
@@ -44,6 +61,53 @@ const signup = async (req, res) => {
   });
 };
 
+const verifyEmail = async (req, res) => {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+
+  if (!user) {
+    throw HttpError(404, "User not found");
+  }
+
+  await User.findByIdAndUpdate(user._id, {
+    verify: true,
+    verificationToken: "",
+  });
+
+  res.status(200).json({ message: "Verification successful" });
+};
+
+const resendVerifyEmail = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw HttpError(400, "missing required field email");
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw HttpError(404, "User not found");
+  }
+
+  if (user.verify) {
+    throw HttpError(400, "Verification has already been passed");
+  }
+
+  const verifyEmail = {
+    to: email,
+    subject: "Please verify your email",
+    html: `<p>Click <a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationToken}">here</a> to verify your email: <strong>${email}</strong></p>`,
+  };
+
+  // sendgrid version
+  await sendEmail.sendSgEmail(verifyEmail);
+
+  // nodemailer version
+  // await sendEmail.sendNodemailerEmail(verifyEmail);
+
+  res.status(200).json({ message: "Verification email sent" });
+};
+
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -51,6 +115,11 @@ const login = async (req, res) => {
   if (!user) {
     throw HttpError(401, "Email or password is wrong");
   }
+
+  if (!user.verify) {
+    throw HttpError(401, "Email is not verified");
+  }
+
   // compares if password in DB is the same as password in request. If it is, it returns true.
   const passwordCompare = await bcrypt.compare(password, user.password);
   if (!passwordCompare) {
@@ -150,6 +219,8 @@ const updateUserAvatar = async (req, res) => {
 
 module.exports = {
   signup: ctrlWrapper(signup),
+  verifyEmail: ctrlWrapper(verifyEmail),
+  resendVerifyEmail: ctrlWrapper(resendVerifyEmail),
   login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),

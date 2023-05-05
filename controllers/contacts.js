@@ -6,15 +6,14 @@ const listContacts = async (req, res) => {
   const { page = 1, limit = 10, favorite } = req.query;
   const skip = (page - 1) * limit;
 
+  const queryFilter = favorite ? { owner, favorite } : { owner };
+  console.log("queryFilter:", queryFilter);
+
   // we can pass the 2nd argument to find() to include fields ("password" or {password:1}) or exclude fields ("-password" or {password: 0})
-  const result = await Contact.find(
-    { owner, favorite },
-    "-createdAt -updatedAt",
-    {
-      limit,
-      skip,
-    }
-  ).populate("owner", "name email");
+  const result = await Contact.find(queryFilter, "-createdAt -updatedAt", {
+    limit,
+    skip,
+  }).populate("owner", "name email");
   // populate() tells mongoose to get this "owner" field, find the collection it belongs to (using "ref" in Contact model), find the object with this ID and paste the whole object instead of this "owner" field
 
   if (!result) {
