@@ -31,6 +31,16 @@ const userSchema = new Schema(
       default: null,
     },
     avatarURL: { type: String, required: [true, "Avatar is required"] },
+    verify: {
+      // this field is responsible for whether the user has verified his email
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      // verification token sent to verify user's email
+      type: String,
+      required: [true, "Verification token is required"],
+    },
   },
   { versionKey: false, timestamps: true }
 );
@@ -41,6 +51,13 @@ const signupSchema = Joi.object({
   name: Joi.string(),
   email: Joi.string().pattern(emailRegex).required(),
   password: Joi.string().min(6).required(),
+});
+
+const emailSchema = Joi.object({
+  email: Joi.string().pattern(emailRegex).required().messages({
+    "string.empty": `"email" cannot be an empty field`,
+    "any.required": `missing required field: "email"`,
+  }),
 });
 
 const loginSchema = Joi.object({
@@ -56,6 +73,7 @@ const updateSubscriptionSchema = Joi.object({
 
 const schemas = {
   signupSchema,
+  emailSchema,
   loginSchema,
   updateSubscriptionSchema,
 };
