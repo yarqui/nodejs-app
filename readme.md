@@ -1,7 +1,6 @@
 ## Node.js contacts backend app
 
 Technologies:
-
 - Node.js
 - Express.js
 - MongoDB
@@ -16,6 +15,15 @@ Technologies:
 - ENV
 - JWT
 - Gravatar
+
+Routes:
+- /
+- /:contactId
+- /:contactId/favorite
+- /login
+- /logout
+- /curent
+- /avatars
 
 ### Commands:
 
